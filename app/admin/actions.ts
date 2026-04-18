@@ -202,6 +202,49 @@ export async function adminBulkDeleteGamesAction(input: {
   };
 }
 
+// ── Bulk delete explicit IDs (admin, hard) ────────────────────────────
+// Used by the multi-select UI on /admin/games — caller hands in the
+// exact set of game IDs to drop. Same "DELETE" typed confirmation as
+// the filter-based bulk delete.
+export async function adminDeleteSelectedGamesAction(input: {
+  ids: string[];
+  reason: string;
+  confirm: string;
+}): Promise<AdminBulkDeleteResult> {
+  if (input.confirm.trim() !== "DELETE")
+    return { ok: false, error: 'Type "DELETE" exactly to confirm.' };
+  const trimmed = input.reason.trim();
+  if (trimmed.length < 5)
+    return { ok: false, error: "Reason must be at least 5 characters." };
+
+  const ids = input.ids.filter((id) => /^[0-9a-f-]{36}$/i.test(id));
+  if (ids.length === 0)
+    return { ok: false, error: "No games selected." };
+  if (ids.length > 500)
+    return {
+      ok: false,
+      error: "Too many at once — split into batches of 500.",
+    };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+
+  const { data, error } = await g.supabase.rpc("admin_bulk_delete_games", {
+    p_game_ids: ids,
+    p_reason: trimmed,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  const deleted = typeof data === "number" ? data : ids.length;
+  revalidatePath("/admin");
+  revalidatePath("/admin/games");
+  return {
+    ok: true,
+    deleted,
+    message: `Deleted ${deleted} game${deleted === 1 ? "" : "s"}.`,
+  };
+}
+
 // ── Ban / unban user (admin) ───────────────────────────────────────────
 export async function banUserAction(
   userId: string,

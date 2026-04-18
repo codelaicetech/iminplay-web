@@ -1,17 +1,9 @@
 import Link from "next/link";
-import {
-  CalendarCheck,
-  Download,
-  ExternalLink,
-  Filter,
-  MapPin,
-  Users as UsersIcon,
-} from "lucide-react";
+import { Download, Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { sportLabel } from "@/lib/types";
 import { CITIES, SPORTS } from "@/lib/constants";
-import { GameRowActions } from "./GameRowActions";
 import { BulkDeleteBar } from "./BulkDeleteBar";
+import { GamesTable, type AdminGameRow } from "./GamesTable";
 
 export const metadata = { title: "Games" };
 
@@ -77,7 +69,7 @@ export default async function AdminGamesPage({
       | { display_name: string | null }[]
       | null;
   };
-  const games = ((data ?? []) as Raw[]).map((g) => ({
+  const games: AdminGameRow[] = ((data ?? []) as Raw[]).map((g) => ({
     ...g,
     creator: Array.isArray(g.creator) ? (g.creator[0] ?? null) : g.creator,
   }));
@@ -182,117 +174,7 @@ export default async function AdminGamesPage({
         </div>
       ) : (
         <>
-          <div className="mt-6 overflow-hidden rounded-3xl bg-white ring-1 ring-border/60">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-border bg-off-white">
-                <tr>
-                  <th className="px-5 py-3 font-bold text-text-muted">Game</th>
-                  <th className="px-5 py-3 font-bold text-text-muted">Host</th>
-                  <th className="px-5 py-3 font-bold text-text-muted">When</th>
-                  <th className="px-5 py-3 font-bold text-text-muted">
-                    Players
-                  </th>
-                  <th className="px-5 py-3 font-bold text-text-muted">
-                    Approval
-                  </th>
-                  <th className="px-5 py-3 font-bold text-text-muted">
-                    Status
-                  </th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody>
-                {games.map((g) => {
-                  const sp = sportLabel(g.sport);
-                  return (
-                    <tr
-                      key={g.id}
-                      className="border-b border-border last:border-b-0 hover:bg-off-white/60"
-                    >
-                      <td className="px-5 py-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-off-white text-lg">
-                            {sp.emoji}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="line-clamp-1 font-bold text-charcoal">
-                              {g.title}
-                            </div>
-                            <div className="mt-0.5 flex items-center gap-1 text-xs text-text-muted">
-                              <MapPin className="size-3" aria-hidden />
-                              {g.location_name ?? g.city ?? "TBD"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3">
-                        {g.creator?.display_name ? (
-                          <Link
-                            href={`/u/${g.creator_id}`}
-                            target="_blank"
-                            className="font-bold text-charcoal hover:text-primary"
-                          >
-                            {g.creator.display_name}
-                          </Link>
-                        ) : (
-                          <span className="text-text-muted">—</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3 text-text-secondary">
-                        <div className="inline-flex items-center gap-1">
-                          <CalendarCheck
-                            className="size-3.5 text-text-muted"
-                            aria-hidden
-                          />
-                          {new Date(g.date_time).toLocaleDateString("en-ZA", {
-                            day: "numeric",
-                            month: "short",
-                          })}{" "}
-                          {new Date(g.date_time).toLocaleTimeString("en-ZA", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 font-bold text-charcoal">
-                        <span className="inline-flex items-center gap-1">
-                          <UsersIcon
-                            className="size-3.5 text-text-muted"
-                            aria-hidden
-                          />
-                          {g.current_players}/{g.max_players}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <ApprovalBadge value={g.approval_status} />
-                      </td>
-                      <td className="px-5 py-3">
-                        <StatusBadge value={g.status} />
-                      </td>
-                      <td className="whitespace-nowrap px-5 py-3 text-right">
-                        <div className="inline-flex items-center gap-2">
-                          <GameRowActions
-                            gameId={g.id}
-                            title={g.title}
-                            status={g.status}
-                          />
-                          <Link
-                            href={`/app/game/${g.id}`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline"
-                          >
-                            Open
-                            <ExternalLink className="size-3" aria-hidden />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <GamesTable games={games} />
 
           {totalPages > 1 && (
             <Pagination
@@ -337,50 +219,6 @@ function Select({
         {children}
       </select>
     </label>
-  );
-}
-
-function ApprovalBadge({ value }: { value: Approval }) {
-  if (value === "pending")
-    return (
-      <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-extrabold text-warning">
-        Pending
-      </span>
-    );
-  if (value === "approved")
-    return (
-      <span className="rounded-full bg-success/10 px-2 py-0.5 text-xs font-extrabold text-success">
-        Approved
-      </span>
-    );
-  if (value === "rejected")
-    return (
-      <span className="rounded-full bg-error/10 px-2 py-0.5 text-xs font-extrabold text-error">
-        Rejected
-      </span>
-    );
-  return <span className="text-text-muted">—</span>;
-}
-
-function StatusBadge({ value }: { value: Status }) {
-  const map: Record<Status, { cls: string; label: string }> = {
-    "": { cls: "", label: "—" },
-    open: { cls: "bg-info/10 text-info", label: "Open" },
-    full: { cls: "bg-primary/10 text-primary", label: "Full" },
-    in_progress: { cls: "bg-primary/10 text-primary", label: "In progress" },
-    completed: {
-      cls: "bg-off-white text-text-muted",
-      label: "Completed",
-    },
-    cancelled: { cls: "bg-error/10 text-error", label: "Cancelled" },
-  };
-  const v = map[value] ?? map[""];
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${v.cls}`}
-    >
-      {v.label}
-    </span>
   );
 }
 
