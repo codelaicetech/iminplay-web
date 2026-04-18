@@ -82,6 +82,75 @@ export async function resolveReportAction(
   return { ok: true };
 }
 
+// ── Cancel game (admin) ────────────────────────────────────────────────
+export async function adminCancelGameAction(
+  gameId: string,
+  reason: string,
+): Promise<AdminResult> {
+  if (!/^[0-9a-f-]{36}$/i.test(gameId))
+    return { ok: false, error: "Invalid game ID." };
+  const trimmed = reason.trim();
+  if (trimmed.length < 5)
+    return {
+      ok: false,
+      error: "Reason must be at least 5 characters.",
+    };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+  const { error } = await g.supabase.rpc("admin_cancel_game", {
+    p_game_id: gameId,
+    p_reason: trimmed,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/admin/games");
+  revalidatePath(`/app/game/${gameId}`);
+  return { ok: true, message: "Game cancelled." };
+}
+
+// ── Ban / unban user (admin) ───────────────────────────────────────────
+export async function banUserAction(
+  userId: string,
+  reason: string,
+): Promise<AdminResult> {
+  if (!/^[0-9a-f-]{36}$/i.test(userId))
+    return { ok: false, error: "Invalid user ID." };
+  const trimmed = reason.trim();
+  if (trimmed.length < 5)
+    return { ok: false, error: "Reason must be at least 5 characters." };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+  const { error } = await g.supabase.rpc("admin_ban_user", {
+    p_user_id: userId,
+    p_reason: trimmed,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/admin/users");
+  revalidatePath(`/u/${userId}`);
+  return { ok: true, message: "User banned." };
+}
+
+export async function unbanUserAction(
+  userId: string,
+): Promise<AdminResult> {
+  if (!/^[0-9a-f-]{36}$/i.test(userId))
+    return { ok: false, error: "Invalid user ID." };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+  const { error } = await g.supabase.rpc("admin_unban_user", {
+    p_user_id: userId,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/admin/users");
+  revalidatePath(`/u/${userId}`);
+  return { ok: true, message: "User unbanned." };
+}
+
 // ── Admin grant / revoke (superadmin only) ─────────────────────────────
 async function requireSuperadmin(): Promise<
   | { ok: true; supabase: Awaited<ReturnType<typeof createClient>>; userId: string }

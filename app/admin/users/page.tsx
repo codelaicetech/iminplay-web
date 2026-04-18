@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ExternalLink, Search, Star, Trophy, Users as UsersIcon } from "lucide-react";
+import { Download, ExternalLink, Search, Star, Trophy, Users as UsersIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { UserRowActions } from "./UserRowActions";
 
 export const metadata = { title: "Users" };
 
@@ -26,7 +27,7 @@ export default async function AdminUsersPage({
   let query = supabase
     .from("profiles")
     .select(
-      "id, display_name, avatar_url, city, favourite_sports, skill_level, is_pro, rating_avg, games_played, created_at",
+      "id, display_name, avatar_url, city, favourite_sports, skill_level, is_pro, rating_avg, games_played, created_at, banned_at, banned_reason",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -54,6 +55,8 @@ export default async function AdminUsersPage({
     rating_avg: number;
     games_played: number;
     created_at: string;
+    banned_at: string | null;
+    banned_reason: string | null;
   };
   const users = (data ?? []) as Row[];
   const totalCount = count ?? 0;
@@ -69,6 +72,13 @@ export default async function AdminUsersPage({
             recent signup.
           </p>
         </div>
+        <a
+          href={buildExportUrl({ q, city })}
+          className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-charcoal ring-1 ring-border hover:ring-charcoal"
+        >
+          <Download className="size-4" aria-hidden />
+          Export CSV
+        </a>
       </div>
 
       {/* Search + filter bar */}
@@ -166,6 +176,14 @@ export default async function AdminUsersPage({
                                 PRO
                               </span>
                             )}
+                            {u.banned_at && (
+                              <span
+                                className="ml-2 rounded-full bg-error/10 px-2 py-0.5 text-[10px] font-extrabold text-error"
+                                title={u.banned_reason ?? undefined}
+                              >
+                                BANNED
+                              </span>
+                            )}
                           </div>
                           <div className="font-mono text-[11px] text-text-muted">
                             {u.id.slice(0, 8)}…
@@ -217,15 +235,22 @@ export default async function AdminUsersPage({
                         year: "numeric",
                       })}
                     </td>
-                    <td className="px-5 py-3 text-right">
-                      <Link
-                        href={`/u/${u.id}`}
-                        target="_blank"
-                        className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline"
-                      >
-                        Profile
-                        <ExternalLink className="size-3" aria-hidden />
-                      </Link>
+                    <td className="whitespace-nowrap px-5 py-3 text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <UserRowActions
+                          userId={u.id}
+                          displayName={u.display_name ?? "this user"}
+                          bannedAt={u.banned_at}
+                        />
+                        <Link
+                          href={`/u/${u.id}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 text-xs font-extrabold text-primary hover:underline"
+                        >
+                          Profile
+                          <ExternalLink className="size-3" aria-hidden />
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -246,6 +271,20 @@ export default async function AdminUsersPage({
       )}
     </div>
   );
+}
+
+function buildExportUrl({
+  q,
+  city,
+}: {
+  q?: string;
+  city?: string;
+}): string {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (city) params.set("city", city);
+  const qs = params.toString();
+  return `/admin/users/export${qs ? "?" + qs : ""}`;
 }
 
 function Pagination({
