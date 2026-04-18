@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Flag, Gauge, Users, LogOut, Shield } from "lucide-react";
+import { Activity, Flag, Gamepad2, Gauge, Users, LogOut, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Wordmark } from "@/components/Wordmark";
 import { signOutAction } from "../auth/actions";
@@ -67,11 +67,20 @@ export default async function AdminLayout({
           <NavTab href="/admin" icon={Gauge}>
             Dashboard
           </NavTab>
-          <NavTab href="/admin/pending-games" icon={Users}>
-            Pending games
+          <NavTab href="/admin/pending-games" icon={Flag}>
+            Pending
           </NavTab>
           <NavTab href="/admin/reports" icon={Flag}>
             Reports
+          </NavTab>
+          <NavTab href="/admin/users" icon={Users}>
+            Users
+          </NavTab>
+          <NavTab href="/admin/games" icon={Gamepad2}>
+            Games
+          </NavTab>
+          <NavTab href="/admin/activity" icon={Activity}>
+            Activity
           </NavTab>
           {isSuperadmin && (
             <NavTab href="/admin/admins" icon={Shield}>
