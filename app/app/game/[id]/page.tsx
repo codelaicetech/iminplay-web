@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   MessageCircle,
+  Pencil,
   Trophy,
   Users,
 } from "lucide-react";
@@ -190,6 +191,15 @@ export default async function AppGamePage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {isCreator && game.status !== "cancelled" && game.status !== "completed" && (
+            <Link
+              href={`/app/game/${game.id}/edit`}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-extrabold text-charcoal ring-1 ring-border hover:ring-charcoal"
+            >
+              <Pencil className="size-4" aria-hidden />
+              Edit
+            </Link>
+          )}
           {(isParticipant || isCreator) && (
             <Link
               href={`/app/game/${game.id}/chat`}
