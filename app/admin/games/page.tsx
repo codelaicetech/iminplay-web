@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sportLabel } from "@/lib/types";
 import { CITIES, SPORTS } from "@/lib/constants";
 import { GameRowActions } from "./GameRowActions";
+import { BulkDeleteBar } from "./BulkDeleteBar";
 
 export const metadata = { title: "Games" };
 
@@ -94,13 +95,19 @@ export default async function AdminGamesPage({
             status, city, sport.
           </p>
         </div>
-        <a
-          href={buildExportUrl({ q, approval, status, city, sport })}
-          className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-charcoal ring-1 ring-border hover:ring-charcoal"
-        >
-          <Download className="size-4" aria-hidden />
-          Export CSV
-        </a>
+        <div className="flex items-center gap-2">
+          <a
+            href={buildExportUrl({ q, approval, status, city, sport })}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-extrabold text-charcoal ring-1 ring-border hover:ring-charcoal"
+          >
+            <Download className="size-4" aria-hidden />
+            Export CSV
+          </a>
+          <BulkDeleteBar
+            totalCount={totalCount}
+            activeFilters={{ q, approval, status, city, sport }}
+          />
+        </div>
       </div>
 
       {/* Filter bar */}

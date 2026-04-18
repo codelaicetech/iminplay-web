@@ -109,6 +109,99 @@ export async function adminCancelGameAction(
   return { ok: true, message: "Game cancelled." };
 }
 
+// ── Delete game (admin, hard) ──────────────────────────────────────────
+// Distinct from cancel: cancel keeps the row with status='cancelled',
+// delete removes it entirely (participants + messages cascade).
+export async function adminDeleteGameAction(
+  gameId: string,
+  reason: string,
+): Promise<AdminResult> {
+  if (!/^[0-9a-f-]{36}$/i.test(gameId))
+    return { ok: false, error: "Invalid game ID." };
+  const trimmed = reason.trim();
+  if (trimmed.length < 5)
+    return {
+      ok: false,
+      error: "Reason must be at least 5 characters.",
+    };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+  const { error } = await g.supabase.rpc("admin_delete_game", {
+    p_game_id: gameId,
+    p_reason: trimmed,
+  });
+  if (error) return { ok: false, error: error.message };
+  revalidatePath("/admin");
+  revalidatePath("/admin/games");
+  return { ok: true, message: "Game deleted." };
+}
+
+// ── Bulk delete games matching filters (admin, hard) ──────────────────
+// Re-applies the same filter rules /admin/games uses so the caller can
+// say "delete all games matching the active filter" without duplicating
+// logic on the client. The confirmation token must literally equal
+// "DELETE" to guard against accidental clicks.
+export type AdminBulkDeleteResult =
+  | { ok: true; deleted: number; message: string }
+  | { ok: false; error: string };
+
+export async function adminBulkDeleteGamesAction(input: {
+  q?: string;
+  approval?: string;
+  status?: string;
+  city?: string;
+  sport?: string;
+  reason: string;
+  confirm: string;
+}): Promise<AdminBulkDeleteResult> {
+  if (input.confirm.trim() !== "DELETE")
+    return {
+      ok: false,
+      error: 'Type "DELETE" exactly to confirm.',
+    };
+  const trimmed = input.reason.trim();
+  if (trimmed.length < 5)
+    return {
+      ok: false,
+      error: "Reason must be at least 5 characters.",
+    };
+
+  const g = await requireAdmin();
+  if (!g.ok) return g;
+
+  // Mirror the filter logic from /admin/games
+  let query = g.supabase.from("games").select("id");
+  if (input.q && input.q.trim())
+    query = query.ilike("title", `%${input.q.trim()}%`);
+  if (input.approval) query = query.eq("approval_status", input.approval);
+  if (input.status) query = query.eq("status", input.status);
+  if (input.city) query = query.eq("city", input.city);
+  if (input.sport) query = query.eq("sport", input.sport);
+
+  const { data: matches, error: selError } = await query.limit(5000);
+  if (selError) return { ok: false, error: selError.message };
+
+  const ids = (matches ?? []).map((r) => (r as { id: string }).id);
+  if (ids.length === 0)
+    return { ok: false, error: "No games match those filters." };
+
+  const { data, error } = await g.supabase.rpc("admin_bulk_delete_games", {
+    p_game_ids: ids,
+    p_reason: trimmed,
+  });
+  if (error) return { ok: false, error: error.message };
+
+  const deleted = typeof data === "number" ? data : ids.length;
+  revalidatePath("/admin");
+  revalidatePath("/admin/games");
+  return {
+    ok: true,
+    deleted,
+    message: `Deleted ${deleted} game${deleted === 1 ? "" : "s"}.`,
+  };
+}
+
 // ── Ban / unban user (admin) ───────────────────────────────────────────
 export async function banUserAction(
   userId: string,
