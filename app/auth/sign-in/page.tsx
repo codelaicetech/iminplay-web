@@ -3,7 +3,7 @@ import { AuthForm } from "../AuthForm";
 import { signInAction } from "../actions";
 
 type PageProps = {
-  searchParams: Promise<{ redirect?: string }>;
+  searchParams: Promise<{ redirect?: string; error?: string }>;
 };
 
 export const metadata = {
@@ -11,7 +11,7 @@ export const metadata = {
 };
 
 export default async function SignInPage({ searchParams }: PageProps) {
-  const { redirect = "/app" } = await searchParams;
+  const { redirect = "/app", error } = await searchParams;
 
   return (
     <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-border/60 sm:p-10">
@@ -19,6 +19,12 @@ export default async function SignInPage({ searchParams }: PageProps) {
       <p className="mt-2 text-text-secondary">
         Welcome back. Find your game.
       </p>
+
+      {error && (
+        <div className="mt-4 rounded-xl bg-error/10 px-4 py-3 text-sm font-semibold text-error">
+          {error}
+        </div>
+      )}
 
       <div className="mt-6">
         <AuthForm
