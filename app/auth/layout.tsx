@@ -21,6 +21,20 @@ export default function AuthLayout({
       <main className="flex flex-1 items-center justify-center px-6 py-10">
         <div className="w-full max-w-md">{children}</div>
       </main>
+
+      <footer className="px-6 py-6 text-xs text-text-muted sm:px-10">
+        <div className="mx-auto flex max-w-md flex-wrap items-center justify-between gap-3">
+          <span>© {new Date().getFullYear()} IminPlay</span>
+          <nav className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-charcoal">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-charcoal">
+              Terms
+            </Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }

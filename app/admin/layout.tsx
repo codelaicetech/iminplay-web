@@ -104,6 +104,23 @@ export default async function AdminLayout({
           {children}
         </div>
       </main>
+
+      <footer className="border-t border-border bg-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4 text-xs text-text-muted sm:px-10">
+          <span>
+            © {new Date().getFullYear()} CODELAICE TECHNOLOGY (Pty) Ltd ·
+            Admin · IminPlay
+          </span>
+          <nav className="flex items-center gap-4">
+            <Link href="/privacy" className="hover:text-charcoal">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-charcoal">
+              Terms
+            </Link>
+          </nav>
+        </div>
+      </footer>
     </div>
   );
 }
