@@ -12,7 +12,7 @@ export default async function EditProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, city, favourite_sports, skill_level")
+    .select("display_name, city, favourite_sports, skill_level, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -24,6 +24,7 @@ export default async function EditProfilePage() {
       </p>
       <div className="mt-8">
         <EditProfileForm
+          userId={user.id}
           initial={{
             displayName: profile?.display_name ?? "",
             city: profile?.city ?? null,
@@ -33,6 +34,7 @@ export default async function EditProfilePage() {
               | "beginner"
               | "intermediate"
               | "advanced",
+            avatarUrl: profile?.avatar_url ?? null,
           }}
         />
       </div>

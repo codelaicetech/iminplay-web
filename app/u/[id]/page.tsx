@@ -6,6 +6,7 @@ import { sportLabel } from "@/lib/types";
 import { Wordmark } from "@/components/Wordmark";
 import { GameCard } from "@/components/GameCard";
 import { AppStoreButtons } from "@/components/AppStoreButtons";
+import { ReportButton } from "@/components/ReportButton";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -55,6 +56,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
   if (!profile) notFound();
 
   const supabase = await createClient();
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+  const canReport = !!viewer && viewer.id !== id;
 
   // Upcoming approved games this user is hosting
   const { data: hostedData } = await supabase
@@ -169,6 +174,17 @@ export default async function PublicProfilePage({ params }: PageProps) {
             </div>
           )}
         </section>
+
+        {canReport && (
+          <div className="mt-8 flex justify-end">
+            <ReportButton
+              targetType="user"
+              targetId={id}
+              targetLabel={profile.display_name ?? "this player"}
+              variant="chip"
+            />
+          </div>
+        )}
 
         {/* Install CTA */}
         <section className="mt-12 rounded-3xl bg-charcoal p-8 text-white">

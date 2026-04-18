@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import { CITIES, SPORTS } from "@/lib/constants";
-import { updateProfileAction } from "../../actions";
+import { createClient } from "@/lib/supabase/client";
+import { setAvatarUrlAction, updateProfileAction } from "../../actions";
 
 type SkillLevel = "any" | "beginner" | "intermediate" | "advanced";
 
@@ -17,15 +18,20 @@ const SKILLS: Array<{ id: SkillLevel; label: string }> = [
 ];
 
 type Props = {
+  userId: string;
   initial: {
     displayName: string;
     city: string | null;
     favouriteSports: string[];
     skillLevel: SkillLevel;
+    avatarUrl: string | null;
   };
 };
 
-export function EditProfileForm({ initial }: Props) {
+const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5 MB
+const ACCEPTED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+
+export function EditProfileForm({ userId, initial }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +41,87 @@ export function EditProfileForm({ initial }: Props) {
   const [city, setCity] = useState<string | null>(initial.city);
   const [sports, setSports] = useState<string[]>(initial.favouriteSports);
   const [skillLevel, setSkillLevel] = useState<SkillLevel>(initial.skillLevel);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initial.avatarUrl);
+  const [avatarBusy, setAvatarBusy] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so selecting the same file re-fires
+    if (!file) return;
+    setAvatarError(null);
+
+    if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
+      setAvatarError("Use a JPG, PNG, WebP or GIF.");
+      return;
+    }
+    if (file.size > MAX_AVATAR_BYTES) {
+      setAvatarError("Image must be under 5 MB.");
+      return;
+    }
+
+    setAvatarBusy(true);
+    try {
+      const supabase = createClient();
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      // Timestamped filename busts the CDN cache after overwriting.
+      const path = `${userId}/avatar-${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type,
+        });
+      if (upErr) {
+        setAvatarError(upErr.message);
+        return;
+      }
+
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const publicUrl = pub.publicUrl;
+
+      const res = await setAvatarUrlAction(publicUrl);
+      if (!res.ok) {
+        setAvatarError(res.error);
+        return;
+      }
+      setAvatarUrl(publicUrl);
+      router.refresh();
+    } catch (err) {
+      setAvatarError(
+        err instanceof Error ? err.message : "Failed to upload image.",
+      );
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
+
+  async function onRemoveAvatar() {
+    if (!avatarUrl) return;
+    setAvatarBusy(true);
+    setAvatarError(null);
+    try {
+      const supabase = createClient();
+      // Best-effort delete of the underlying object. If this fails
+      // (e.g. the URL is stale) we still clear the profile field.
+      const m = avatarUrl.match(/\/avatars\/(.+)$/);
+      if (m?.[1]) {
+        await supabase.storage.from("avatars").remove([decodeURIComponent(m[1])]);
+      }
+      const res = await setAvatarUrlAction(null);
+      if (!res.ok) {
+        setAvatarError(res.error);
+        return;
+      }
+      setAvatarUrl(null);
+      router.refresh();
+    } finally {
+      setAvatarBusy(false);
+    }
+  }
 
   function toggleSport(id: string) {
     setSports((prev) =>
@@ -71,6 +158,62 @@ export function EditProfileForm({ initial }: Props) {
         <ArrowLeft className="size-4" aria-hidden />
         Back to Settings
       </Link>
+
+      <Field label="Photo">
+        <div className="flex items-center gap-5">
+          <div className="flex size-20 items-center justify-center overflow-hidden rounded-full bg-primary text-2xl font-black text-white ring-1 ring-border/60">
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt=""
+                className="size-full object-cover"
+              />
+            ) : (
+              (displayName || "?")[0].toUpperCase()
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              ref={fileInput}
+              type="file"
+              accept={ACCEPTED_AVATAR_TYPES.join(",")}
+              onChange={onPickAvatar}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={avatarBusy}
+              className="inline-flex items-center gap-1.5 rounded-full bg-charcoal px-4 py-2 text-sm font-extrabold text-white hover:bg-charcoal/90 disabled:opacity-50"
+            >
+              {avatarBusy ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="size-4" aria-hidden />
+              )}
+              {avatarUrl ? "Change photo" : "Upload photo"}
+            </button>
+            {avatarUrl && (
+              <button
+                type="button"
+                onClick={onRemoveAvatar}
+                disabled={avatarBusy}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-bold text-text-secondary hover:bg-off-white hover:text-error disabled:opacity-50"
+              >
+                <X className="size-4" aria-hidden />
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+        {avatarError && (
+          <p className="mt-2 text-sm font-semibold text-error">{avatarError}</p>
+        )}
+        <p className="mt-2 text-xs text-text-muted">
+          JPG, PNG, WebP or GIF · up to 5 MB.
+        </p>
+      </Field>
 
       <Field label="Display name" hint={`${displayName.length}/40`}>
         <input

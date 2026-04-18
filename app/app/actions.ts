@@ -154,6 +154,43 @@ export async function updateProfileAction(
   return { ok: true, message: "Profile updated." };
 }
 
+// ── Avatar URL ──────────────────────────────────────────────────────────
+// The actual upload happens on the client via the Supabase browser SDK
+// (RLS enforces that users only write under their own uid folder).
+// This action just persists the resulting public URL onto the profile
+// and invalidates the relevant caches. Pass null to clear.
+export async function setAvatarUrlAction(
+  url: string | null,
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "You must be signed in." };
+
+  if (url !== null) {
+    if (typeof url !== "string" || url.length > 500)
+      return { ok: false, error: "Invalid avatar URL." };
+    // Only allow URLs hosted on our Supabase project (avatars bucket).
+    // Prevents storing arbitrary remote images.
+    if (!/^https?:\/\/[^/]+\/storage\/v1\/object\/public\/avatars\//.test(url))
+      return { ok: false, error: "Avatar URL must point to the avatars bucket." };
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      avatar_url: url,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/app");
+  revalidatePath(`/u/${user.id}`);
+  return { ok: true, message: url ? "Avatar updated." : "Avatar removed." };
+}
+
 // ── Change password ─────────────────────────────────────────────────────
 export async function changePasswordAction(input: {
   password: string;

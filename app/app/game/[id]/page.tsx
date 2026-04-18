@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { sportLabel, type Game, type Profile } from "@/lib/types";
+import { ReportButton } from "@/components/ReportButton";
 import { JoinButton } from "./JoinButton";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -204,6 +205,17 @@ export default async function AppGamePage({ params }: PageProps) {
           />
         </div>
       </div>
+
+      {/* Report */}
+      {!isCreator && (
+        <div className="mt-6 flex justify-end">
+          <ReportButton
+            targetType="game"
+            targetId={game.id}
+            targetLabel="this game"
+          />
+        </div>
+      )}
 
       {/* Participants */}
       {participants.length > 0 && (
