@@ -181,27 +181,19 @@ export default function TermsPage() {
           </ul>
         </Section>
 
-        <Section title="7. IminPlay Pro (Paid Subscription)">
+        <Section title="7. Pricing">
           <ul>
             <li>
-              IminPlay may offer paid subscription plans (&ldquo;IminPlay
-              Pro&rdquo;) with additional features.
+              The Service is currently <strong>free during beta</strong>.
             </li>
             <li>
-              Subscriptions are billed through the Apple App Store or Google
-              Play Store.
+              If we introduce paid tiers in the future, we will notify users
+              in advance and publish updated terms before any charges apply.
             </li>
             <li>
-              Cancellation and refund policies are governed by the respective
-              platform&apos;s terms.
-            </li>
-            <li>
-              We reserve the right to change subscription pricing with 30
-              days&apos; notice.
-            </li>
-            <li>
-              Free features will remain free; we will not retroactively charge
-              for existing functionality.
+              Free features available at the time you sign up will remain
+              free; we will not retroactively charge for existing
+              functionality.
             </li>
           </ul>
         </Section>
@@ -226,10 +218,6 @@ export default function TermsPage() {
             <li>
               Upon deletion, your profile, games, messages, and ratings will be
               permanently removed within 30 days.
-            </li>
-            <li>
-              Active subscriptions should be cancelled through the App Store or
-              Google Play before deleting your account.
             </li>
           </ul>
         </Section>

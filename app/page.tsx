@@ -149,7 +149,7 @@ export default function HomePage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <PrimaryCta />
               <p className="text-xs text-text-muted">
-                Free. No subscription. Ever.
+                Free during beta.
               </p>
             </div>
           </div>
@@ -190,11 +190,10 @@ export default function HomePage() {
        * STATS BAND
        * ──────────────────────────────────────────────────────── */}
       <section className="border-y border-border bg-charcoal text-white">
-        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 sm:grid-cols-4 sm:px-10">
+        <div className="mx-auto grid max-w-7xl gap-8 px-6 py-12 sm:grid-cols-3 sm:px-10">
           <Stat value="10" unit="sports" label="from football to padel" />
-          <Stat value="7" unit="cities" label="across South Africa" />
-          <Stat value="30s" unit="" label="to join a game" />
-          <Stat value="0" unit="R" label="subscription fee" />
+          <Stat value="1" unit="city" label="starting in Cape Town" />
+          <Stat value="Free" unit="" label="during beta" />
         </div>
       </section>
 
@@ -445,34 +444,46 @@ export default function HomePage() {
             </ul>
           </div>
 
-          {/* Testimonial cluster */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Testimonial
-              quote="Finally, a way to find padel games on a Tuesday that doesn't involve 9 WhatsApp groups."
-              name="Thandi M."
-              role="Cape Town"
-              rating={5}
+          {/* Early access card — honest (no fake testimonials) */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-dark p-8 text-white">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -right-10 -top-10 size-44 rounded-full bg-white/10 blur-2xl"
             />
-            <Testimonial
-              quote="Hosted my first 5-a-side in 3 minutes. 12 people joined in the first hour."
-              name="Siya N."
-              role="Sea Point"
-              rating={5}
-              className="sm:translate-y-8"
-            />
-            <Testimonial
-              quote="The reminders alone are worth it. My crew never forgets Saturday hoops any more."
-              name="Ayanda K."
-              role="Green Point"
-              rating={5}
-            />
-            <Testimonial
-              quote="Clean UI, no clutter, no subscription nonsense. Just games."
-              name="Rafa D."
-              role="V&A Waterfront"
-              rating={5}
-              className="sm:translate-y-8"
-            />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider">
+                <Sparkles className="size-3.5" aria-hidden />
+                Early access
+              </span>
+              <h3 className="mt-5 text-3xl font-black leading-tight">
+                Be one of the first 50 players in Cape Town.
+              </h3>
+              <p className="mt-3 text-white/80">
+                IminPlay is brand new — we&apos;re launching with friends,
+                family and early supporters in the Mother City. Sign up free,
+                host or join a game this week, and shape what the community
+                feels like.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Link
+                  href="/auth/sign-up"
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-extrabold text-primary hover:bg-off-white"
+                >
+                  Claim your spot
+                  <ArrowRight className="size-4" aria-hidden />
+                </Link>
+                <a
+                  href="mailto:hello@iminplay.com?subject=IminPlay%20early%20access"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-transparent px-5 py-2.5 text-sm font-extrabold text-white hover:bg-white/10"
+                >
+                  Say hi
+                </a>
+              </div>
+              <p className="mt-6 text-xs text-white/60">
+                Built in Cape Town by Elton Laice · Founder, CODELAICE
+                TECHNOLOGY (Pty) Ltd
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -734,38 +745,6 @@ function Bullet({
         <p className="mt-0.5 text-sm text-text-secondary">{body}</p>
       </div>
     </li>
-  );
-}
-
-function Testimonial({
-  quote,
-  name,
-  role,
-  rating,
-  className,
-}: {
-  quote: string;
-  name: string;
-  role: string;
-  rating: number;
-  className?: string;
-}) {
-  return (
-    <figure
-      className={`rounded-3xl bg-white p-6 ring-1 ring-border/60 ${className ?? ""}`}
-    >
-      <div className="flex gap-0.5 text-primary">
-        {Array.from({ length: rating }).map((_, i) => (
-          <Star key={i} className="size-4 fill-primary" aria-hidden />
-        ))}
-      </div>
-      <blockquote className="mt-3 text-sm leading-relaxed text-charcoal">
-        “{quote}”
-      </blockquote>
-      <figcaption className="mt-4 text-xs font-extrabold text-text-muted">
-        <span className="text-charcoal">{name}</span> · {role}
-      </figcaption>
-    </figure>
   );
 }
 
