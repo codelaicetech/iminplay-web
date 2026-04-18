@@ -1,0 +1,32 @@
+# Anything that shouldn't make it into the build context
+node_modules
+.next
+out
+build
+coverage
+
+# Env files — these are injected via build-args / runtime env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# VCS + local tooling
+.git
+.github
+.vscode
+.idea
+.DS_Store
+
+# Docs + deploy artefacts that don't affect the build
+README.md
+AGENTS.md
+CLAUDE.md
+copilot
+*.md
+supabase
+
+# OS / editor cruft
+*.log
+npm-debug.log*
+*.tsbuildinfo

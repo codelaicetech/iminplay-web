@@ -1,0 +1,94 @@
+name: Deploy to ECS Fargate
+
+# CI/CD pipeline. On every push to `main` we:
+#   1. Build a new Docker image with the current code + env secrets
+#   2. Push it to ECR
+#   3. Update the ECS service to use the new image
+#
+# Auth uses AWS OIDC — no long-lived access keys in GitHub. The
+# iminplay-web-deploy-role must be created once in AWS (see deploy
+# checklist Fase B.7) and trusted by this repo.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # allow manual re-runs from the Actions tab
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: af-south-1
+  ECR_REPOSITORY: iminplay/web
+  ECS_CLUSTER: iminplay-prod-Cluster
+  ECS_SERVICE: iminplay-prod-web-Service
+
+permissions:
+  id-token: write # required for OIDC
+  contents: read
+
+jobs:
+  deploy:
+    name: Build → push → deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: tag
+        run: |
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          echo "tag=$SHA_SHORT" >> "$GITHUB_OUTPUT"
+          echo "Using image tag: $SHA_SHORT"
+
+      - name: Build Docker image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL='${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}' \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY='${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}' \
+            --build-arg NEXT_PUBLIC_GOOGLE_MAPS_API_KEY='${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}' \
+            --tag "$ECR_REGISTRY/$ECR_REPOSITORY:$TAG" \
+            --tag "$ECR_REGISTRY/$ECR_REPOSITORY:latest" \
+            .
+
+      - name: Push image to ECR
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$TAG"
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:latest"
+
+      - name: Force new deployment on ECS
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --force-new-deployment \
+            --query 'service.{status:status,desired:desiredCount,running:runningCount}' \
+            --output table
+
+      - name: Wait for service stable
+        run: |
+          aws ecs wait services-stable \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE"
+          echo "✅ Deployment stable"

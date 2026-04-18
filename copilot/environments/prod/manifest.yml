@@ -1,0 +1,25 @@
+# The manifest for the "prod" environment.
+# https://aws.github.io/copilot-cli/docs/manifest/environment/
+#
+# Creates a dedicated VPC + ECS cluster + ALB for the iminplay
+# production workload. af-south-1 (Cape Town) keeps latency low for
+# our South African users.
+
+name: prod
+type: Environment
+
+network:
+  vpc:
+    # Default /16 block — Copilot carves subnets out of this
+    cidr: 10.0.0.0/16
+
+http:
+  public:
+    # ACM cert ARN filled in after the domain lands on Cloudflare and
+    # we validate via DNS (see deploy checklist Fase B.6). Until then
+    # the ALB serves via its default *.elb.amazonaws.com hostname.
+    # certificates:
+    #   - arn:aws:acm:af-south-1:ACCOUNT_ID:certificate/CERT_ID
+
+observability:
+  container_insights: true

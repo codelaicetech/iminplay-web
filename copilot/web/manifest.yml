@@ -1,0 +1,72 @@
+# The manifest for the "web" service.
+# https://aws.github.io/copilot-cli/docs/manifest/lb-web-service/
+#
+# IminPlay marketing site + signed-in app (Next.js 16 SSR).
+# Runs as a Load Balanced Web Service on Fargate behind an ALB.
+
+name: web
+type: Load Balanced Web Service
+
+# Expose HTTPS on the ALB. The "alias" section is filled in AFTER we
+# provision an ACM cert that covers iminplay.com (see Fase B.5 in the
+# deploy checklist). Until then, traffic comes in via the default
+# *.elb.amazonaws.com hostname.
+http:
+  path: "/"
+  healthcheck:
+    path: "/api/health"
+    port: 3000
+    healthy_threshold: 2
+    unhealthy_threshold: 3
+    interval: 15s
+    timeout: 5s
+    grace_period: 30s
+  # alias: iminplay.com
+  # redirect_to_https: true
+
+image:
+  build:
+    dockerfile: Dockerfile
+    # NEXT_PUBLIC_* vars are baked into the client bundle at build
+    # time. Copilot reads these from the shell env when you run
+    # `copilot svc deploy`. CI passes them via `docker build
+    # --build-arg` directly, bypassing Copilot's build step.
+    args:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+  port: 3000
+
+cpu: 512       # 0.5 vCPU — plenty for Next.js SSR idle + modest traffic
+memory: 1024   # 1 GB — Next.js 16 builds happily in ~300-500MB
+platform: linux/x86_64
+exec: true     # enable `copilot svc exec` for debugging live tasks
+
+# Auto-scale once we have real traffic. Keeps cost low at night when
+# nobody is using the product.
+count:
+  range: 1-3
+  cooldown:
+    in: 60s
+    out: 120s
+  cpu_percentage: 70
+  memory_percentage: 80
+
+# Runtime env vars. Secrets should move to SSM Parameter Store
+# (see the `secrets:` section) if/when we add anything sensitive.
+variables:
+  NODE_ENV: production
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Surface the public vars at runtime too — middleware reads these.
+  NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+  NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+
+# secrets:
+#   SUPABASE_SERVICE_ROLE_KEY: /copilot/iminplay/prod/secrets/SUPABASE_SERVICE_ROLE_KEY
+
+# Optional per-environment overrides — prod keeps the defaults above.
+environments:
+  prod:
+    count:
+      range: 1-3
