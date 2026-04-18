@@ -13,7 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
-import { AppStoreButtons } from "@/components/AppStoreButtons";
+import { PrimaryCta } from "@/components/PrimaryCta";
 import { CITIES, SPORTS, cityToSlug } from "@/lib/constants";
 
 export default function HomePage() {
@@ -52,10 +52,10 @@ export default function HomePage() {
               Sign in
             </Link>
             <Link
-              href="/install"
+              href="/auth/sign-up"
               className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-extrabold text-white transition-transform active:scale-95 hover:bg-primary-dark sm:px-5"
             >
-              Get the app
+              Play now
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
@@ -80,7 +80,7 @@ export default function HomePage() {
           <div className="space-y-7">
             <span className="inline-flex items-center gap-2 rounded-full bg-primary-light px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-primary">
               <Sparkles className="size-3.5" aria-hidden />
-              Coming Q2 2026 · Cape Town first
+              Early access · Cape Town
             </span>
 
             <h1 className="font-black leading-[1.02] text-5xl tracking-tight sm:text-6xl lg:text-7xl">
@@ -147,7 +147,7 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <AppStoreButtons />
+              <PrimaryCta />
               <p className="text-xs text-text-muted">
                 Free. No subscription. Ever.
               </p>
@@ -499,7 +499,7 @@ export default function HomePage() {
                 Every sport. Every level. Built in Cape Town, made for Africa.
               </p>
               <div className="mt-8">
-                <AppStoreButtons />
+                <PrimaryCta variant="onDark" />
               </div>
             </div>
             <div className="relative hidden justify-end lg:flex">
@@ -546,11 +546,11 @@ export default function HomePage() {
           <div>
             <Wordmark size="md" />
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-text-secondary">
-              The community-first pickup sport app for South Africa. Built in
-              Cape Town by CODELAICE TECHNOLOGY (Pty) Ltd.
+              The community-first pickup sport platform for South Africa.
+              Built in Cape Town by CODELAICE TECHNOLOGY (Pty) Ltd.
             </p>
             <div className="mt-6">
-              <AppStoreButtons size="sm" />
+              <PrimaryCta size="sm" />
             </div>
           </div>
 
@@ -558,7 +558,7 @@ export default function HomePage() {
             <FooterCol title="Product">
               <FooterLink href="/app">Browse games</FooterLink>
               <FooterLink href="/app/game/new">Host a game</FooterLink>
-              <FooterLink href="/install">Download app</FooterLink>
+              <FooterLink href="/auth/sign-up">Sign up free</FooterLink>
               <FooterLink href="/auth/sign-in">Sign in</FooterLink>
             </FooterCol>
             <FooterCol title="Sports">

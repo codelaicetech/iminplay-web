@@ -6,7 +6,7 @@ import { slugToCity, SPORTS } from "@/lib/constants";
 import type { Game } from "@/lib/types";
 import { Wordmark } from "@/components/Wordmark";
 import { GameCard } from "@/components/GameCard";
-import { AppStoreButtons } from "@/components/AppStoreButtons";
+import { PrimaryCta } from "@/components/PrimaryCta";
 
 type PageProps = {
   params: Promise<{ city: string }>;
@@ -76,7 +76,7 @@ export default async function CityPage({ params, searchParams }: PageProps) {
         <h1 className="text-4xl font-black sm:text-5xl">{city}</h1>
         <p className="mt-3 max-w-2xl text-text-secondary">
           {games.length} upcoming {games.length === 1 ? "game" : "games"} in{" "}
-          {city}. Tap one to see details, or download the app to join.
+          {city}. Tap one to see details, or sign up free to join.
         </p>
 
         {/* Sport chip filter (URL-driven) */}
@@ -102,10 +102,10 @@ export default async function CityPage({ params, searchParams }: PageProps) {
               No games yet in {city}
             </div>
             <p className="mt-2 text-text-secondary">
-              Be the first to host one — download the app and create a game.
+              Be the first to host one — sign up and create a game.
             </p>
             <div className="mt-6 flex justify-center">
-              <AppStoreButtons size="sm" />
+              <PrimaryCta size="sm" />
             </div>
           </div>
         ) : (

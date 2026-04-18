@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sportLabel } from "@/lib/types";
 import { Wordmark } from "@/components/Wordmark";
 import { GameCard } from "@/components/GameCard";
-import { AppStoreButtons } from "@/components/AppStoreButtons";
+import { PrimaryCta } from "@/components/PrimaryCta";
 import { ReportButton } from "@/components/ReportButton";
 
 type PageProps = { params: Promise<{ id: string }> };
@@ -186,14 +186,14 @@ export default async function PublicProfilePage({ params }: PageProps) {
           </div>
         )}
 
-        {/* Install CTA */}
+        {/* Play CTA */}
         <section className="mt-12 rounded-3xl bg-charcoal p-8 text-white">
           <h2 className="text-2xl font-black">Play with {profile.display_name?.split(" ")[0] ?? "them"}</h2>
           <p className="mt-2 text-white/70">
-            Download IminPlay to join their games.
+            Sign up free to join their games.
           </p>
           <div className="mt-4">
-            <AppStoreButtons size="sm" />
+            <PrimaryCta size="sm" variant="onDark" />
           </div>
         </section>
       </main>

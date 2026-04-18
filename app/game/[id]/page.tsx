@@ -12,7 +12,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import { sportLabel, type Game } from "@/lib/types";
 import { Wordmark } from "@/components/Wordmark";
-import { AppStoreButtons } from "@/components/AppStoreButtons";
+import { PrimaryCta } from "@/components/PrimaryCta";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -177,11 +177,11 @@ export default async function GamePage({ params }: PageProps) {
           </div>
           <p className="mx-auto mt-3 max-w-md text-white/70">
             {spots > 0
-              ? "Download IminPlay to join this game, chat with the team, and find more pickup sport near you."
-              : "Download IminPlay to find other games in your area."}
+              ? "Sign up free to join this game, chat with the team, and find more pickup sport near you."
+              : "Sign up free to find other games in your area."}
           </p>
           <div className="mt-6 flex justify-center">
-            <AppStoreButtons />
+            <PrimaryCta variant="onDark" />
           </div>
         </div>
       </section>
