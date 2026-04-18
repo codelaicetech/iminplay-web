@@ -61,11 +61,19 @@ export default async function AppLayout({
             </nav>
           </div>
 
-          <UserMenu
-            displayName={displayName}
-            email={user.email ?? ""}
-            avatarUrl={profile?.avatar_url ?? null}
-          />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/app/game/new"
+              className="hidden rounded-full bg-primary px-4 py-2 text-sm font-extrabold text-white transition-transform active:scale-95 hover:bg-primary-dark sm:inline-flex"
+            >
+              + New game
+            </Link>
+            <UserMenu
+              displayName={displayName}
+              email={user.email ?? ""}
+              avatarUrl={profile?.avatar_url ?? null}
+            />
+          </div>
         </div>
       </header>
 
