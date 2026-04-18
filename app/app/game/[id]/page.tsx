@@ -5,6 +5,7 @@ import {
   Calendar,
   Clock,
   MapPin,
+  MessageCircle,
   Trophy,
   Users,
 } from "lucide-react";
@@ -185,12 +186,23 @@ export default async function AppGamePage({ params }: PageProps) {
                 : `${spots} spot${spots === 1 ? "" : "s"} available`}
           </div>
         </div>
-        <JoinButton
-          gameId={game.id}
-          isParticipant={isParticipant}
-          isFull={isFull}
-          isCreator={isCreator}
-        />
+        <div className="flex flex-wrap items-center gap-3">
+          {(isParticipant || isCreator) && (
+            <Link
+              href={`/app/game/${game.id}/chat`}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-extrabold text-charcoal ring-1 ring-border hover:ring-charcoal"
+            >
+              <MessageCircle className="size-4" aria-hidden />
+              Open chat
+            </Link>
+          )}
+          <JoinButton
+            gameId={game.id}
+            isParticipant={isParticipant}
+            isFull={isFull}
+            isCreator={isCreator}
+          />
+        </div>
       </div>
 
       {/* Participants */}
