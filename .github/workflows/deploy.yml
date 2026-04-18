@@ -19,10 +19,10 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  AWS_REGION: af-south-1
+  AWS_REGION: eu-west-1
   ECR_REPOSITORY: iminplay/web
-  ECS_CLUSTER: iminplay-prod-Cluster
-  ECS_SERVICE: iminplay-prod-web-Service
+  ECS_CLUSTER: iminplay-prod-Cluster-F1prtIRKhTX5
+  ECS_SERVICE: iminplay-prod-web-Service-SlEkgDc4rLld
 
 permissions:
   id-token: write # required for OIDC

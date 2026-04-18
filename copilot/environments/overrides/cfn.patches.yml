@@ -1,0 +1,18 @@
+# Workaround for a Copilot 1.34.1 template bug: the generated env
+# stack emits `AppRunnerVpcEndpoint` with an empty `SubnetIds:` list
+# even when no App Runner workloads exist. CloudFormation validates
+# template STRUCTURE before evaluating Conditions, so the null list
+# rejects the deployment with:
+#   "ValidationError: [/Resources/AppRunnerVpcEndpoint/Type/SubnetIds]
+#    'null' values are not allowed in templates"
+#
+# We don't use App Runner (our workload is ECS Fargate on ALB), so we
+# just strip the resource + its security group + its output.
+- op: remove
+  path: /Resources/AppRunnerVpcEndpoint
+- op: remove
+  path: /Resources/AppRunnerVpcEndpointSecurityGroup
+- op: remove
+  path: /Resources/AppRunnerVpcEndpointSecurityGroupIngressFromEnvironment
+- op: remove
+  path: /Outputs/AppRunnerVpcEndpointId

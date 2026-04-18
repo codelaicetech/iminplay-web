@@ -13,6 +13,10 @@ type: Load Balanced Web Service
 # *.elb.amazonaws.com hostname.
 http:
   path: "/"
+  alias:
+    - iminplay.com
+    - www.iminplay.com
+  redirect_to_https: true
   healthcheck:
     path: "/api/health"
     port: 3000
@@ -21,8 +25,6 @@ http:
     interval: 15s
     timeout: 5s
     grace_period: 30s
-  # alias: iminplay.com
-  # redirect_to_https: true
 
 image:
   build:
