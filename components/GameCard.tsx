@@ -1,32 +1,37 @@
 import Link from "next/link";
 import { Calendar, MapPin, Users } from "lucide-react";
 import { sportLabel, type Game } from "@/lib/types";
+import { formatGameTime } from "@/lib/dates";
 
 type Props = {
   game: Game;
   href?: string;
 };
 
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  const today = new Date();
-  const tomorrow = new Date(Date.now() + 86_400_000);
-  if (d.toDateString() === today.toDateString()) return "Today";
-  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
-  return d.toLocaleDateString("en-ZA", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
+// "Today" / "Tomorrow" / weekday-day-month — all computed in SAST so a
+// game that starts 23:00 Cape Town doesn't flip to "Tomorrow" for a
+// viewer in London.
+function sastDay(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", {
+    timeZone: "Africa/Johannesburg",
   });
 }
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("en-ZA", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
+function formatDate(iso: string): string {
+  const gameDay = sastDay(iso);
+  const today = sastDay(new Date().toISOString());
+  const tomorrow = sastDay(new Date(Date.now() + 86_400_000).toISOString());
+  if (gameDay === today) return "Today";
+  if (gameDay === tomorrow) return "Tomorrow";
+  return new Date(iso).toLocaleDateString("en-ZA", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Africa/Johannesburg",
   });
 }
+
+const formatTime = formatGameTime;
 
 /**
  * Compact game card used in feeds. Mirrors the mobile GameCard but

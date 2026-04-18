@@ -85,11 +85,13 @@ export default async function AppGamePage({ params }: PageProps) {
     weekday: "long",
     day: "numeric",
     month: "short",
+    timeZone: "Africa/Johannesburg",
   });
   const timeLabel = date.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Africa/Johannesburg",
   });
 
   return (

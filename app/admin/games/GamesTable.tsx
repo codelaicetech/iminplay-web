@@ -217,11 +217,13 @@ export function GamesTable({ games }: { games: AdminGameRow[] }) {
                       {new Date(g.date_time).toLocaleDateString("en-ZA", {
                         day: "numeric",
                         month: "short",
+                        timeZone: "Africa/Johannesburg",
                       })}{" "}
                       {new Date(g.date_time).toLocaleTimeString("en-ZA", {
                         hour: "2-digit",
                         minute: "2-digit",
                         hour12: false,
+                        timeZone: "Africa/Johannesburg",
                       })}
                     </div>
                   </td>

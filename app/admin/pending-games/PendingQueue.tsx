@@ -159,12 +159,14 @@ export function PendingQueue({ games }: Props) {
               weekday: "short",
               day: "numeric",
               month: "short",
+              timeZone: "Africa/Johannesburg",
             })}{" "}
             at{" "}
             {date.toLocaleTimeString("en-ZA", {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
+              timeZone: "Africa/Johannesburg",
             })}
           </Row>
           <Row icon={Users}>

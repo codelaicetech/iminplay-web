@@ -85,11 +85,13 @@ export default async function GamePage({ params }: PageProps) {
     weekday: "long",
     day: "numeric",
     month: "short",
+    timeZone: "Africa/Johannesburg",
   });
   const timeLabel = date.toLocaleTimeString("en-ZA", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Africa/Johannesburg",
   });
 
   return (
@@ -214,7 +216,8 @@ function Detail({
   );
 }
 
-// Helper: keep formatting in sync with mobile
+// Helper: keep formatting in sync with mobile. Forces SAST so the OG
+// description reads in Cape Town time regardless of crawler locale.
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleString("en-ZA", {
@@ -224,5 +227,6 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: "Africa/Johannesburg",
   });
 }
